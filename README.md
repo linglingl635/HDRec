@@ -10,7 +10,7 @@
 ## Instruction
 ### Step. 1 hierarchical distillation before pretraining
 
-#### (a) Install llama 3 （download model weights and tokenizer）
+#### (a) Install llama 3（download model weights and tokenizer）
         get the License from [the site](https://llama.meta.com/llama-downloads/)
         >> cd llama 
 	    >> ./download.sh (License required)
