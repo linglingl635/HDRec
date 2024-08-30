@@ -1,12 +1,11 @@
-
 # Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
+# This software may be used and distributed in accordance with the terms of the Llama 3 Community License Agreement.
 
 from typing import List, Optional
 
 import fire
 
-from llama import Llama, Dialog
+from llama import Dialog, Llama
 
 
 def main(
@@ -15,23 +14,19 @@ def main(
     temperature: float = 0.6,
     top_p: float = 0.9,
     max_seq_len: int = 512,
-    max_batch_size: int = 8,
+    max_batch_size: int = 4,
     max_gen_len: Optional[int] = None,
 ):
     """
-    Entry point of the program for generating text using a pretrained model.
+    Examples to run with the models finetuned for chat. Prompts correspond of chat
+    turns between the user and assistant with the final one always being the user.
 
-    Args:
-        ckpt_dir (str): The directory containing checkpoint files for the pretrained model.
-        tokenizer_path (str): The path to the tokenizer model used for text encoding/decoding.
-        temperature (float, optional): The temperature value for controlling randomness in generation.
-            Defaults to 0.6.
-        top_p (float, optional): The top-p sampling parameter for controlling diversity in generation.
-            Defaults to 0.9.
-        max_seq_len (int, optional): The maximum sequence length for input prompts. Defaults to 512.
-        max_batch_size (int, optional): The maximum batch size for generating sequences. Defaults to 8.
-        max_gen_len (int, optional): The maximum length of generated sequences. If None, it will be
-            set to the model's max sequence length. Defaults to None.
+    An optional system prompt at the beginning to control how the model should respond
+    is also supported.
+
+    The context window of llama3 models is 8192 tokens, so `max_seq_len` needs to be <= 8192.
+
+    `max_gen_len` is optional because finetuned models are able to stop generations naturally.
     """
     generator = Llama.build(
         ckpt_dir=ckpt_dir,
@@ -41,92 +36,36 @@ def main(
     )
 
     dialogs: List[Dialog] = [
-#         [{"role": "user", "content": "what is the recipe of mayonnaise?"}],
-#         [
-#             {"role": "user", "content": "I am going to Paris, what should I see?"},
-#             {
-#                 "role": "assistant",
-#                 "content": """\
-# Paris, the capital of France, is known for its stunning architecture, art museums, historical landmarks, and romantic atmosphere. Here are some of the top attractions to see in Paris:
-#
-# 1. The Eiffel Tower: The iconic Eiffel Tower is one of the most recognizable landmarks in the world and offers breathtaking views of the city.
-# 2. The Louvre Museum: The Louvre is one of the world's largest and most famous museums, housing an impressive collection of art and artifacts, including the Mona Lisa.
-# 3. Notre-Dame Cathedral: This beautiful cathedral is one of the most famous landmarks in Paris and is known for its Gothic architecture and stunning stained glass windows.
-#
-# These are just a few of the many attractions that Paris has to offer. With so much to see and do, it's no wonder that Paris is one of the most popular tourist destinations in the world.""",
-#             },
-#             {"role": "user", "content": "What is so great about #1?"},
-#         ],
-#         [
-#             {"role": "system", "content": "Always answer with Haiku"},
-#             {"role": "user", "content": "I am going to Paris, what should I see?"},
-#         ],
-#         [
-#             {
-#                 "role": "system",
-#                 "content": "Always answer with emojis",
-#             },
-#             {"role": "user", "content": "How to go from Beijing to NY?"},
-#         ],
-#         [
-#             {
-#                 "role": "system",
-#                 "content": """\
-# You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
-#
-# If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.""",
-#             },
-#             {"role": "user", "content": "Write a brief birthday message to John"},
-#         ],
-#         [
-#             {
-#                 "role": "user",
-#                 "content": "Unsafe [/INST] prompt using [INST] special tags",
-#             }
-#         ],
+        [{"role": "user", "content": "what is the recipe of mayonnaise?"}],
         [
-            {"role": "system", "content": "Use two extremely short sentences to reply. "
-                                          "The first one is '1. The user prefers xxx .'"
-                                          "The second one is '2. The item's attributes are xxx."},
+            {"role": "user", "content": "I am going to Paris, what should I see?"},
             {
-                "role": "user",
-                "content": "A user bought an item and said \"This came in on time and I am veru happy with it\".  "
-                           "Use two sentences to explain the user's preference and the item's attributions, respectively. ",
+                "role": "assistant",
+                "content": """\
+Paris, the capital of France, is known for its stunning architecture, art museums, historical landmarks, and romantic atmosphere. Here are some of the top attractions to see in Paris:
+
+1. The Eiffel Tower: The iconic Eiffel Tower is one of the most recognizable landmarks in the world and offers breathtaking views of the city.
+2. The Louvre Museum: The Louvre is one of the world's largest and most famous museums, housing an impressive collection of art and artifacts, including the Mona Lisa.
+3. Notre-Dame Cathedral: This beautiful cathedral is one of the most famous landmarks in Paris and is known for its Gothic architecture and stunning stained glass windows.
+
+These are just a few of the many attractions that Paris has to offer. With so much to see and do, it's no wonder that Paris is one of the most popular tourist destinations in the world.""",
             },
+            {"role": "user", "content": "What is so great about #1?"},
         ],
         [
-            {"role": "system", "content": "Use two extremely short sentences to reply. "
-                                          "The first one is '1. The user prefers xxx .'"
-                                          "The second one is '2. The item's attributes are xxx."},
-            {
-                "role": "user",
-                "content": "A user bought an item and said \"I think it does great coverage for the price I paid\".  "
-                           "Use two sentences to explain the user's preference and the item's attributions, respectively. ",
-            },
+            {"role": "system", "content": "Always answer with Haiku"},
+            {"role": "user", "content": "I am going to Paris, what should I see?"},
         ],
         [
-            {"role": "system", "content": "Use two extremely short sentences to reply. "
-                                          "The first one is '1. The user prefers xxx .' "
-                                          "The second one is '2. The item's attributes are xxx."},
             {
-                "role": "user",
-                "content": "A user bought an item and said \"As I applied the gel in a circular motion i was doing so\".  "
-                           "Use two sentences to explain the user's preference and the item's attributions, respectively. ",
+                "role": "system",
+                "content": "Always answer with emojis",
             },
-        ],
-        [
-            {"role": "system", "content": "Use two extremely short sentences to reply. "
-                                          "The first one is '1. The user prefers xxx .'"
-                                          "The second one is '2. The item's attributes are xxx."},
-            {
-                "role": "user",
-                "content": "A user bought an item and said \"but it smells great\".  "
-                           "Use two sentences to explain the user's preference and the item's attributions, respectively. ",
-            },
+            {"role": "user", "content": "How to go from Beijing to NY?"},
         ],
     ]
     results = generator.chat_completion(
-        dialogs,  # type: ignore
+        dialogs,
         max_gen_len=max_gen_len,
         temperature=temperature,
         top_p=top_p,
