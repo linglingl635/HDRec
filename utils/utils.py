@@ -35,7 +35,7 @@ def bleu_score(references, generated, n_gram=4, smooth=False):
 
 class ExpDataLoader:
     def __init__(self, data_dir):
-        with open(data_dir + 'explanation_rationale4.json', 'r') as f:
+        with open(data_dir + 'explanation_rationale5.json', 'r') as f:
             self.exp_data = json.load(f)
 
         self.train = self.exp_data['train']
@@ -112,7 +112,7 @@ class ExpSampler:
             record = self.exp_data[idx]
             template = random.choice(exp_templates)
             inputs.append(template.format(record['user'], record['item']))
-            outputs.append(record['explanation'])
+            outputs.append(record['groundtruth_explanation'])
             self.step += 1
         return task, inputs, outputs
 
@@ -309,7 +309,7 @@ class ExpBatchify:
         input_list, output_list = [], []
         for x in exp_data:
             input_list.append(template.format(x['user'], x['item']))
-            output_list.append(x['explanation'])
+            output_list.append(x['groundtruth_explanation'])
 
         encoded_source = tokenizer(input_list, padding=True, return_tensors='pt')
         self.source_seq = encoded_source['input_ids'].contiguous()
